@@ -4,11 +4,11 @@ import {
   formatJSONResponse
 } from '@libs/api-gateway'
 import schema from './schema'
-import { DynamoDBClient, DynamoDBClientConfig } from '@aws-sdk/client-dynamodb'
+import { DynamoDBClientConfig, DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb'
 import { v4 } from 'uuid'
 
-const BILLS_TABLE = process.env.BILLS_TABLE
+const ORDERS_TABLE = process.env.ORDERS_TABLE
 const dynamoDbClientConfig: DynamoDBClientConfig = {
   maxAttempts: 3
 }
@@ -19,20 +19,24 @@ const handler: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
   event
 ) => {
   const params = {
-    TableName: BILLS_TABLE,
+    TableName: ORDERS_TABLE,
     Item: {
-      billId: v4().toString(),
+      orderId: v4().toString(),
+      billId: event.body.billId,
       createdAt: new Date().toISOString(),
-      tableNumber: event.body.tableNumber
+      menuName: event.body.menuName,
+      options: event.body.options,
+      price: event.body.price,
+      photoUrl: event.body.photoUrl
     }
   }
 
   try {
     await dynamoDbClient.send(new PutCommand(params))
-    return formatJSONResponse({ billId: params.Item.billId })
+    return formatJSONResponse({ orderId: params.Item.orderId })
   } catch (error) {
     console.log(error)
-    return formatJSONResponse({ error: 'Could not create bill' })
+    return formatJSONResponse({ error: 'Could not create order' })
   }
 }
 

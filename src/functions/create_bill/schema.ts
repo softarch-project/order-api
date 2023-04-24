@@ -1,5 +1,7 @@
 export default {
   type: 'object',
-  properties: {},
-  required: []
+  properties: {
+    tableNumber: { type: 'number' }
+  },
+  required: ['tableNumber']
 } as const
